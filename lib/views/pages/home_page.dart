@@ -7,13 +7,15 @@ import 'package:open_path/models/user_model.dart';
 import 'package:open_path/core/theme/app_theme.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  final VoidCallback? onSeeAllCourses;
+
+  const HomePage({super.key, this.onSeeAllCourses});
 
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin {
   List<Enrollment> enrolledCourses = [];
   List<CourseModel> trendingCourses = [];
   bool isLoading = true;
@@ -43,7 +45,11 @@ class _HomePageState extends State<HomePage> {
   }
 
   @override
+  bool get wantKeepAlive => true;
+
+  @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Scaffold(
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -66,7 +72,7 @@ class _HomePageState extends State<HomePage> {
                     ),
                     const SizedBox(height: 24),
                     if (enrolledCourses.isNotEmpty) ...[
-                      SectionHeader(title: 'My Courses', onSeeAll: () {}),
+                      SectionHeader(title: 'My Courses'),
                       const SizedBox(height: 12),
                       SizedBox(
                         height: 250,
@@ -83,7 +89,7 @@ class _HomePageState extends State<HomePage> {
                       const SizedBox(height: 28),
                     ],
                     if (trendingCourses.isNotEmpty) ...[
-                      SectionHeader(title: 'Trending Courses', onSeeAll: () {}),
+                      SectionHeader(title: 'Trending Courses', onSeeAll: widget.onSeeAllCourses),
                       const SizedBox(height: 12),
                       SizedBox(
                         height: 250,

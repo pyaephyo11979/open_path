@@ -113,6 +113,34 @@ class UserApi {
     }
   }
 
+  Future<UserModel> updateProfileImage(String imagePath) async {
+    try {
+      final token = await SecureStorageService().getAuthToken();
+      final formData = FormData.fromMap({
+        'image': await MultipartFile.fromFile(imagePath),
+      });
+      final response = await Dio().put(
+        '${APIService().baseUrl}/user/profile/image',
+        data: formData,
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Accept': 'application/json',
+          },
+        ),
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return UserModel.fromJson(response.data as Map<String, dynamic>);
+      } else {
+        throw Exception('Failed to update profile image');
+      }
+    } on DioException catch (e) {
+      final message =
+          e.response?.data['message'] ?? 'Failed to update profile image';
+      throw Exception(message);
+    }
+  }
+
   Future<bool> logout() async {
     try {
       final response = await APIService().post(

@@ -15,41 +15,46 @@ class Home extends StatefulWidget {
   State<Home> createState() => _HomeState();
 }
 
-class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
+class _HomeState extends State<Home> {
   int _currentIndex = 0;
-  late final TabController _tabController;
+  late final PageController _pageController;
 
-  final List<Widget> _pages = const [HomePage(), CoursePage(), ProfilePage()];
+  List<Widget> get _pages => [
+    HomePage(onSeeAllCourses: () => _pageController.animateToPage(1, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut)),
+    const CoursePage(),
+    const ProfilePage(),
+  ];
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
-    _tabController.addListener(() {
-      if (_tabController.index != _currentIndex) {
-        setState(() => _currentIndex = _tabController.index);
-      }
-    });
+    _pageController = PageController(initialPage: 0);
   }
 
   @override
   void dispose() {
-    _tabController.dispose();
+    _pageController.dispose();
     super.dispose();
   }
 
   String get _title {
     switch (_currentIndex) {
-      case 0: return 'Home';
-      case 1: return 'Courses';
-      case 2: return 'Profile';
-      default: return '';
+      case 0:
+        return 'Home';
+      case 1:
+        return 'Courses';
+      case 2:
+        return 'Profile';
+      default:
+        return '';
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final barColor = isDark ? AppColors.darkSurface : Colors.white;
+    final borderColor = isDark ? Colors.white12 : Colors.white;
     return Scaffold(
       appBar: AppBar(
         title: Row(
@@ -62,10 +67,17 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
                 color: AppColors.primary.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
-              child: Image.asset('assets/icons/icon.png', width: 24, height: 24),
+              child: Image.asset(
+                'assets/icons/icon.png',
+                width: 24,
+                height: 24,
+              ),
             ),
             const SizedBox(width: 10),
-            Text(_title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            Text(
+              _title,
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
           ],
         ),
         actions: [
@@ -77,20 +89,23 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
       ),
       body: BottomBar(
         layout: const BottomBarLayout(
-          width: 400,
-          borderRadius: BorderRadius.all(Radius.circular(30)),
+          width: 420,
+          borderRadius: BorderRadius.all(Radius.circular(35)),
         ),
         scrollBehavior: const BottomBarScrollBehavior(hideOnScroll: true),
         theme: BottomBarThemeData(
           barDecoration: BoxDecoration(
-            color: (isDark ? AppColors.darkSurface : Colors.white).withValues(alpha: 0.85),
-            borderRadius: BorderRadius.circular(30),
-            border: Border.all(color: (isDark ? Colors.white12 : AppColors.border), width: 1),
+            color: barColor.withValues(alpha: 0.55),
+            borderRadius: BorderRadius.circular(35),
+            border: Border.all(
+              color: borderColor.withValues(alpha: 0.3),
+              width: 0.5,
+            ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
-                blurRadius: 16,
-                offset: const Offset(0, 4),
+                color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.1),
+                blurRadius: 24,
+                offset: const Offset(0, 8),
               ),
             ],
           ),
@@ -101,42 +116,89 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         ),
         motion: BottomBarMotion.cupertino(
           preset: BottomBarCupertinoMotion.snappy,
-          duration: const Duration(milliseconds: 300),
-          slideStart: const Offset(0, 3),
+          duration: const Duration(milliseconds: 400),
+          slideStart: const Offset(0, 5),
         ),
-        body: TabBarView(controller: _tabController, children: _pages),
+        body: PageView(
+          controller: _pageController,
+          onPageChanged: (index) => setState(() => _currentIndex = index),
+          children: _pages,
+        ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(30),
+          borderRadius: BorderRadius.circular(35),
           child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-            child: Padding(
-              padding: const EdgeInsets.all(6),
-              child: BottomBarItems(
-                children: [
-                  BottomBarItem(
-                    icon: FaIcon(_currentIndex == 0 ? FontAwesomeIcons.house : FontAwesomeIcons.house),
-                    label: const Text('Home'),
-                    selected: _currentIndex == 0,
-                    onTap: () => _tabController.animateTo(0),
-                  ),
-                  BottomBarItem(
-                    icon: FaIcon(_currentIndex == 1 ? FontAwesomeIcons.compass : FontAwesomeIcons.compass),
-                    label: const Text('Courses'),
-                    selected: _currentIndex == 1,
-                    onTap: () => _tabController.animateTo(1),
-                  ),
-                  BottomBarItem(
-                    icon: FaIcon(_currentIndex == 2 ? FontAwesomeIcons.user : FontAwesomeIcons.user),
-                    label: const Text('Profile'),
-                    selected: _currentIndex == 2,
-                    onTap: () => _tabController.animateTo(2),
-                  ),
-                ],
+            filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    barColor.withValues(alpha: 0.15),
+                    barColor.withValues(alpha: 0.05),
+                  ],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(6),
+                child: BottomBarItems(
+                  children: [
+                    _buildNavItem(
+                      0,
+                      FontAwesomeIcons.house,
+                      FontAwesomeIcons.houseCircleCheck,
+                      'Home',
+                    ),
+                    _buildNavItem(
+                      1,
+                      FontAwesomeIcons.compass,
+                      FontAwesomeIcons.compass,
+                      'Courses',
+                    ),
+                    _buildNavItem(
+                      2,
+                      FontAwesomeIcons.user,
+                      FontAwesomeIcons.circleUser,
+                      'Profile',
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildNavItem(
+    int index,
+    FaIconData inactiveIcon,
+    FaIconData activeIcon,
+    String label,
+  ) {
+    final isSelected = _currentIndex == index;
+    return BottomBarItem(
+      icon: FaIcon(inactiveIcon, size: 22),
+      selectedIcon: FaIcon(activeIcon, size: 22),
+      label: AnimatedDefaultTextStyle(
+        duration: const Duration(milliseconds: 200),
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+          color: isSelected ? AppColors.primary : AppColors.textSecondary,
+        ),
+        child: Text(label),
+      ),
+      selected: isSelected,
+      selectedColor: AppColors.primary,
+      onTap: () {
+        _pageController.animateToPage(
+          index,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      },
     );
   }
 }

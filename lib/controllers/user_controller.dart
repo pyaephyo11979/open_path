@@ -34,4 +34,8 @@ class UserController {
       password: password,
     );
   }
+
+  Future<UserModel> updateProfileImage(String imagePath) async {
+    return await _userApi.updateProfileImage(imagePath);
+  }
 }

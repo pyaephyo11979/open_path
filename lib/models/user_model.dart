@@ -5,6 +5,7 @@ class UserModel {
   final String name;
   final String email;
   final String? password;
+  final String? imageUrl;
   final List<EnrollmentModel>? enrollments;
 
   UserModel({
@@ -12,6 +13,7 @@ class UserModel {
     required this.name,
     required this.email,
     this.password,
+    this.imageUrl,
     this.enrollments,
   });
 
@@ -21,11 +23,30 @@ class UserModel {
       name: json['name'],
       email: json['email'],
       password: json['password'],
+      imageUrl: json['imageUrl'],
       enrollments: json['enrollments'] != null
           ? List<EnrollmentModel>.from(
               json['enrollments'].map((x) => EnrollmentModel.fromJson(x)),
             )
           : null,
+    );
+  }
+
+  UserModel copyWith({
+    int? id,
+    String? name,
+    String? email,
+    String? password,
+    String? imageUrl,
+    List<EnrollmentModel>? enrollments,
+  }) {
+    return UserModel(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      email: email ?? this.email,
+      password: password ?? this.password,
+      imageUrl: imageUrl ?? this.imageUrl,
+      enrollments: enrollments ?? this.enrollments,
     );
   }
 }

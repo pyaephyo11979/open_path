@@ -118,7 +118,11 @@ class _CourseCardState extends State<CourseCard> {
                     width: double.infinity,
                     height: 36,
                     child: ElevatedButton(
-                      onPressed: null,
+                      onPressed: widget.course.isEnrolled == true
+                          ? (widget.course.enrollmentStatus == 'APPROVED'
+                              ? () => context.push('/course/${widget.course.id}')
+                              : () => showToast('Your enrollment is pending approval.', context: context, animation: StyledToastAnimation.slideFromBottom, reverseAnimation: StyledToastAnimation.slideToBottom, position: StyledToastPosition.bottom, duration: const Duration(seconds: 3), backgroundColor: AppColors.warning, textStyle: const TextStyle(color: Colors.white)))
+                          : () => enrollInCourse(widget.course.id),
                       style: ElevatedButton.styleFrom(
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         backgroundColor: widget.course.isEnrolled == true
