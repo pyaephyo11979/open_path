@@ -15,7 +15,8 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin {
+class _HomePageState extends State<HomePage>
+    with AutomaticKeepAliveClientMixin {
   List<Enrollment> enrolledCourses = [];
   List<CourseModel> trendingCourses = [];
   bool isLoading = true;
@@ -89,7 +90,10 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
                       const SizedBox(height: 28),
                     ],
                     if (trendingCourses.isNotEmpty) ...[
-                      SectionHeader(title: 'Trending Courses', onSeeAll: widget.onSeeAllCourses),
+                      SectionHeader(
+                        title: 'Trending Courses',
+                        onSeeAll: widget.onSeeAllCourses,
+                      ),
                       const SizedBox(height: 12),
                       SizedBox(
                         height: 250,

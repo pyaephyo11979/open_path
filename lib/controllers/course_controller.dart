@@ -37,4 +37,8 @@ class CourseController {
       responses: responses,
     );
   }
+
+  Future<List<CourseModel>> searchCourse({required String query}) async {
+    return await _courseAPI.searchCourse(query: query);
+  }
 }

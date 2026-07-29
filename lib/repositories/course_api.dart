@@ -67,4 +67,13 @@ class CourseAPI {
     );
     return response.data['data'] as Map<String, dynamic>;
   }
+
+  Future<List<CourseModel>> searchCourse({required String query}) async {
+    final response = await _apiService.get(
+      url: '/courses?search=$query',
+      isTokenNeed: true,
+    );
+    final List data = response.data['data'];
+    return data.map((json) => CourseModel.fromJson(json)).toList();
+  }
 }

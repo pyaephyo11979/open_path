@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter_floating_bottom_bar/flutter_floating_bottom_bar.dart';
 import 'package:go_router/go_router.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:open_path/views/pages/course_page.dart';
 import 'package:open_path/views/pages/home_page.dart';
 import 'package:open_path/views/pages/profile_page.dart';
@@ -18,6 +20,8 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   int _currentIndex = 0;
   late final PageController _pageController;
+  int _unreadCount = 0;
+  StreamSubscription? _notificationSubscription;
 
   List<Widget> get _pages => [
     HomePage(onSeeAllCourses: () => _pageController.animateToPage(1, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut)),
@@ -29,10 +33,14 @@ class _HomeState extends State<Home> {
   void initState() {
     super.initState();
     _pageController = PageController(initialPage: 0);
+    _notificationSubscription = FirebaseMessaging.onMessage.listen((_) {
+      if (mounted) setState(() => _unreadCount++);
+    });
   }
 
   @override
   void dispose() {
+    _notificationSubscription?.cancel();
     _pageController.dispose();
     super.dispose();
   }
@@ -81,9 +89,16 @@ class _HomeState extends State<Home> {
           ],
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined),
-            onPressed: () => context.push('/notifications'),
+          Badge(
+            isLabelVisible: _unreadCount > 0,
+            label: Text('$_unreadCount'),
+            child: IconButton(
+              icon: const Icon(Icons.notifications_outlined),
+              onPressed: () {
+                setState(() => _unreadCount = 0);
+                context.push('/notifications');
+              },
+            ),
           ),
         ],
       ),

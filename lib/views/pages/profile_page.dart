@@ -61,8 +61,11 @@ class _ProfilePageState extends State<ProfilePage> with AutomaticKeepAliveClient
     return Scaffold(
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              child: Column(
+          : RefreshIndicator(
+              onRefresh: () async => fetchAllData(),
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: Column(
                 children: [
                   Padding(
                     padding: const EdgeInsets.only(left: 20, top: 20),
@@ -224,6 +227,7 @@ class _ProfilePageState extends State<ProfilePage> with AutomaticKeepAliveClient
                     ),
                   ),
                 ],
+              ),
               ),
             ),
     );

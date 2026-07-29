@@ -11,7 +11,8 @@ class CoursePage extends StatefulWidget {
   State<CoursePage> createState() => _CoursePageState();
 }
 
-class _CoursePageState extends State<CoursePage> with AutomaticKeepAliveClientMixin {
+class _CoursePageState extends State<CoursePage>
+    with AutomaticKeepAliveClientMixin {
   final CourseController _courseController = CourseController();
   List<CourseModel> _courses = [];
   bool _isLoading = true;
@@ -20,6 +21,30 @@ class _CoursePageState extends State<CoursePage> with AutomaticKeepAliveClientMi
   void _fetchCourses() async {
     try {
       final courses = await _courseController.fetchCourses();
+      if (mounted) {
+        setState(() {
+          _courses = courses;
+          _isLoading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  void _searchCourses() async {
+    try {
+      if (mounted) setState(() => _isLoading = true);
+      if (_searchController.text.isEmpty) {
+        _fetchCourses();
+        return;
+      }
+      final query = _searchController.text.trim();
+      if (query.isEmpty) {
+        _fetchCourses();
+        return;
+      }
+      final courses = await _courseController.searchCourse(query: query);
       if (mounted) {
         setState(() {
           _courses = courses;
@@ -58,16 +83,13 @@ class _CoursePageState extends State<CoursePage> with AutomaticKeepAliveClientMi
               controller: _searchController,
               decoration: InputDecoration(
                 hintText: 'Search courses...',
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: _searchController.text.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          _searchController.clear();
-                          setState(() {});
-                        },
-                      )
-                    : null,
+                suffixIcon: IconButton(
+                  onPressed: () {
+                    _searchCourses();
+                    FocusScope.of(context).unfocus();
+                  },
+                  icon: Icon(Icons.search_outlined),
+                ),
                 filled: true,
               ),
             ),
