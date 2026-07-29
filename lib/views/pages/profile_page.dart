@@ -4,6 +4,7 @@ import 'package:open_path/models/user_model.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:open_path/controllers/course_controller.dart';
+import 'package:open_path/core/theme/app_theme.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -15,7 +16,6 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   UserModel? user;
   List<Enrollment>? enrolledCourses;
-
   bool isLoading = true;
 
   void fetchAllData() async {
@@ -41,175 +41,179 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   @override
-  void dispose() {
-    super.dispose();
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Scaffold(
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              child: Column(
+                children: [
+                  Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Container(
+                        height: 140,
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [AppColors.primary, AppColors.primaryLight],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: const BorderRadius.vertical(bottom: Radius.circular(30)),
+                        ),
+                      ),
+                      Positioned(
+                        left: 20,
+                        bottom: -40,
+                        child: Container(
+                          width: 90,
+                          height: 90,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: isDark ? AppColors.darkBackground : Colors.white, width: 4),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.1),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: CircleAvatar(
+                            backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+                            child: Text(
+                              user?.name.isNotEmpty == true ? user!.name[0].toUpperCase() : '?',
+                              style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: AppColors.primary),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 56),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(user?.name ?? '', style: Theme.of(context).textTheme.headlineSmall),
+                        const SizedBox(height: 4),
+                        Text(user?.email ?? '', style: Theme.of(context).textTheme.bodyMedium),
+                        const SizedBox(height: 24),
+                        Row(
+                          children: [
+                            _StatCard(label: 'Courses', value: '${enrolledCourses?.length ?? 0}', icon: Icons.menu_book),
+                            const SizedBox(width: 12),
+                            _StatCard(label: 'Completed', value: '0', icon: Icons.check_circle),
+                            const SizedBox(width: 12),
+                            _StatCard(label: 'Quizzes', value: '0', icon: Icons.quiz),
+                          ],
+                        ),
+                        const SizedBox(height: 28),
+                        _MenuItem(
+                          icon: Icons.edit_outlined,
+                          title: 'Edit Profile',
+                          onTap: () => context.push('/edit_profile'),
+                        ),
+                        _MenuItem(
+                          icon: Icons.notifications_outlined,
+                          title: 'Notifications',
+                          onTap: () => context.push('/notifications'),
+                        ),
+                        _MenuItem(
+                          icon: isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
+                          title: isDark ? 'Light Mode' : 'Dark Mode',
+                          trailing: Switch(
+                            value: isDark,
+                            activeTrackColor: AppColors.primaryLight.withValues(alpha: 0.4),
+                            activeThumbColor: AppColors.primaryLight,
+                            onChanged: (_) {
+                              // Theme toggle would use ThemeData switching logic
+                              // For now just visual - the app auto follows system
+                            },
+                          ),
+                        ),
+                        _MenuItem(
+                          icon: Icons.info_outline,
+                          title: 'About Us',
+                          onTap: () => context.push('/about_us'),
+                        ),
+                        const Divider(height: 32),
+                        _MenuItem(
+                          icon: Icons.logout,
+                          title: 'Logout',
+                          iconColor: AppColors.error,
+                          textColor: AppColors.error,
+                          onTap: logout,
+                        ),
+                        const SizedBox(height: 40),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+    );
   }
+}
+
+class _StatCard extends StatelessWidget {
+  final String label;
+  final String value;
+  final IconData icon;
+
+  const _StatCard({required this.label, required this.value, required this.icon});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: isLoading
-          ? Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(height: 10),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Container(
-                          width: 80,
-                          height: 80,
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Theme.of(context).primaryColor,
-                          ),
-                          child: Text(
-                            user?.name.substring(0, 1) ?? 'Loading...',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 10),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            Text(
-                              user?.name ?? 'Loading...',
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            Text(
-                              user?.email ?? 'Loading...',
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: const Color.fromARGB(255, 105, 104, 104),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    Divider(color: Colors.grey, thickness: 0.5, height: 20),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Courses',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        SizedBox(height: 10),
-                        if (user?.enrollments == null ||
-                            user!.enrollments!.isEmpty)
-                          Text('No courses enrolled.')
-                        else
-                          SizedBox(
-                            height: 150,
-                            width: double.infinity,
-                            child: ListView.separated(
-                              physics: NeverScrollableScrollPhysics(),
-                              scrollDirection: Axis.horizontal,
-                              separatorBuilder: (context, index) =>
-                                  SizedBox(width: 10),
-                              itemCount: user?.enrollments?.length ?? 0,
-                              itemBuilder: (context, index) {
-                                final course = enrolledCourses?[index].course;
-                                return GestureDetector(
-                                  onTap: () {
-                                    context.push('/course/${course?.id}');
-                                  },
-                                  child: Container(
-                                    margin: EdgeInsets.only(bottom: 10),
-                                    padding: EdgeInsets.all(10),
-                                    width: 100,
-                                    height: 130,
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(10),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.grey.withValues(
-                                            alpha: 0.5,
-                                          ),
-                                          spreadRadius: 2,
-                                          blurRadius: 5,
-                                          offset: Offset(0, 3),
-                                        ),
-                                      ],
-                                    ),
-                                    child: Column(
-                                      children: [
-                                        Image.network(
-                                          course?.imageUrl ??
-                                              'https://via.placeholder.com/150',
-                                          width: 80,
-                                          height: 80,
-                                          fit: BoxFit.cover,
-                                        ),
-                                        SizedBox(height: 5),
-                                        Text(
-                                          course?.title ?? 'No title',
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                      ],
-                    ),
-                    Divider(color: Colors.grey, thickness: 0.5, height: 20),
-                    ListTile(
-                      leading: Icon(Icons.edit),
-                      title: Text('Edit Profile'),
-                      onTap: () {
-                        context.push('/edit_profile');
-                      },
-                    ),
-                    SizedBox(height: 10),
-                    ListTile(
-                      leading: Icon(Icons.info),
-                      title: Text('About Us'),
-                      trailing: Icon(Icons.arrow_forward_ios),
-                      onTap: () {
-                        context.push('/about_us');
-                      },
-                    ),
-                    ListTile(
-                      leading: Icon(Icons.logout, color: Colors.red),
-                      title: Text(
-                        'Logout',
-                        style: TextStyle(color: Colors.red),
-                      ),
-                      onTap: () {
-                        logout();
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            ),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.darkSurface : Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: isDark ? Colors.white12 : AppColors.divider),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, size: 24, color: AppColors.primary),
+            const SizedBox(height: 8),
+            Text(value, style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontSize: 20)),
+            Text(label, style: Theme.of(context).textTheme.bodySmall),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MenuItem extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final Widget? trailing;
+  final Color? iconColor;
+  final Color? textColor;
+  final VoidCallback? onTap;
+
+  const _MenuItem({
+    required this.icon,
+    required this.title,
+    this.trailing,
+    this.iconColor,
+    this.textColor,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      leading: Icon(icon, color: iconColor ?? AppColors.primary),
+      title: Text(title, style: TextStyle(color: textColor)),
+      trailing: trailing ?? const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+      onTap: onTap,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
     );
   }
 }

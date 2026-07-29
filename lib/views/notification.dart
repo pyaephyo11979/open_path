@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:open_path/core/services/notification_service.dart';
+import 'package:open_path/core/theme/app_theme.dart';
 
 class NotificationPage extends StatefulWidget {
   const NotificationPage({super.key});
@@ -40,33 +41,31 @@ class _NotificationPageState extends State<NotificationPage> {
       ),
       body: notifications.isEmpty
           ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.notifications_none,
-                    size: 64,
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.onSurface.withValues(alpha: 0.4),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'No notifications yet',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.onSurface.withValues(alpha: 0.6),
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 80,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.notifications_none, size: 40, color: AppColors.primary),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 20),
+                    Text('No notifications yet', style: Theme.of(context).textTheme.titleLarge),
+                    const SizedBox(height: 8),
+                    Text('We\'ll let you know when something arrives', style: Theme.of(context).textTheme.bodyMedium),
+                  ],
+                ),
               ),
             )
-          : ListView.separated(
-              padding: const EdgeInsets.all(16),
+          : ListView.builder(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               itemCount: notifications.length,
-              separatorBuilder: (_, _) => const Divider(height: 1),
               itemBuilder: (context, index) {
                 final message = notifications[index];
                 return _NotificationTile(message: message);
@@ -87,35 +86,48 @@ class _NotificationTile extends StatelessWidget {
     final title = notification?.title ?? 'Notification';
     final body = notification?.body ?? '';
     final sentTime = message.sentTime;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-      leading: CircleAvatar(
-        backgroundColor: Theme.of(
-          context,
-        ).colorScheme.primary.withValues(alpha: 0.1),
-        child: Icon(
-          Icons.notifications,
-          color: Theme.of(context).colorScheme.primary,
-        ),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.darkSurface : Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: isDark ? Colors.white12 : AppColors.divider),
       ),
-      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
-      subtitle: Column(
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (body.isNotEmpty) ...[const SizedBox(height: 4), Text(body)],
-          if (sentTime != null) ...[
-            const SizedBox(height: 4),
-            Text(
-              _formatTime(sentTime),
-              style: TextStyle(
-                fontSize: 12,
-                color: Theme.of(
-                  context,
-                ).colorScheme.onSurface.withValues(alpha: 0.5),
-              ),
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
             ),
-          ],
+            child: const Icon(Icons.notifications, color: AppColors.primary, size: 22),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
+                if (body.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(body, style: Theme.of(context).textTheme.bodyMedium),
+                ],
+                if (sentTime != null) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    _formatTime(sentTime),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 11),
+                  ),
+                ],
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -124,7 +136,6 @@ class _NotificationTile extends StatelessWidget {
   String _formatTime(DateTime time) {
     final now = DateTime.now();
     final diff = now.difference(time);
-
     if (diff.inMinutes < 1) return 'Just now';
     if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
     if (diff.inHours < 24) return '${diff.inHours}h ago';

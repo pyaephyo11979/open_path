@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:open_path/controllers/course_controller.dart';
 import 'package:open_path/core/widgets/course_card.dart';
 import 'package:open_path/models/course_model.dart';
+import 'package:open_path/core/theme/app_theme.dart';
 
 class CoursePage extends StatefulWidget {
   const CoursePage({super.key});
@@ -14,6 +15,7 @@ class _CoursePageState extends State<CoursePage> {
   final CourseController _courseController = CourseController();
   List<CourseModel> _courses = [];
   bool _isLoading = true;
+  final TextEditingController _searchController = TextEditingController();
 
   void _fetchCourses() async {
     final courses = await _courseController.fetchCourses();
@@ -32,39 +34,62 @@ class _CoursePageState extends State<CoursePage> {
   }
 
   @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          children: [
-            TextField(
+      body: Column(
+        children: [
+          Padding(
+            padding: AppTheme.screenPadding,
+            child: TextField(
+              controller: _searchController,
               decoration: InputDecoration(
-                labelText: 'Search',
-                prefixIcon: IconButton(
-                  icon: Icon(Icons.search),
-                  onPressed: () {},
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                ),
+                hintText: 'Search courses...',
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: _searchController.text.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          _searchController.clear();
+                          setState(() {});
+                        },
+                      )
+                    : null,
+                filled: true,
               ),
             ),
-            SizedBox(height: 20),
-            if (_isLoading)
-              Center(child: CircularProgressIndicator())
-            else
-              Expanded(
-                child: ListView.builder(
-                  scrollDirection: Axis.vertical,
-                  itemCount: _courses.length,
-                  itemBuilder: (context, index) {
-                    return CourseCard(course: _courses[index]);
-                  },
-                ),
-              ),
-          ],
-        ),
+          ),
+          Expanded(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _courses.isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.search_off, size: 64, color: AppColors.textSecondary.withValues(alpha: 0.4)),
+                            const SizedBox(height: 16),
+                            Text('No courses found', style: Theme.of(context).textTheme.bodyMedium),
+                          ],
+                        ),
+                      )
+                    : RefreshIndicator(
+                        onRefresh: () async => _fetchCourses(),
+                        child: ListView.builder(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          itemCount: _courses.length,
+                          itemBuilder: (context, index) {
+                            return CourseCard(course: _courses[index], horizontal: false);
+                          },
+                        ),
+                      ),
+          ),
+        ],
       ),
     );
   }

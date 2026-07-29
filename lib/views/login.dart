@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:open_path/controllers/auth_controller.dart';
 import 'package:flutter_styled_toast/flutter_styled_toast.dart';
+import 'package:open_path/core/theme/app_theme.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -10,57 +11,47 @@ class Login extends StatefulWidget {
   State<Login> createState() => _LoginState();
 }
 
-class _LoginState extends State<Login> {
+class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
   bool _ishidden = true;
+  bool _isLoading = false;
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
+  late final AnimationController _animController;
+  late final Animation<double> _fadeAnim;
 
-  void validateEmail(String email) {
-    String pattern =
-        r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'; // Basic email pattern
-    RegExp regex = RegExp(pattern);
-    if (!regex.hasMatch(email)) {
-      throw Exception('Invalid email format');
-    }
+  @override
+  void initState() {
+    super.initState();
+    _animController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
+    _fadeAnim = CurvedAnimation(parent: _animController, curve: Curves.easeOut);
+    _animController.forward();
   }
 
-  void validatePassword(String password) {
-    if (password.length < 8) {
-      throw Exception('Password must be at least 8 characters long');
-    }
+  @override
+  void dispose() {
+    _animController.dispose();
+    _passwordController.dispose();
+    _emailController.dispose();
+    super.dispose();
   }
 
   void _login() async {
     String email = _emailController.text.trim();
     String password = _passwordController.text.trim();
+    if (email.isEmpty || password.isEmpty) {
+      showToast('Please fill in all fields', context: context, animation: StyledToastAnimation.slideFromBottom, reverseAnimation: StyledToastAnimation.slideToBottom, position: StyledToastPosition.bottom, duration: const Duration(seconds: 3), backgroundColor: AppColors.error, textStyle: const TextStyle(color: Colors.white));
+      return;
+    }
+    setState(() => _isLoading = true);
     try {
-      if (email.isEmpty || password.isEmpty) {
-        showToast(
-          'Please fill in all fields',
-          context: context,
-          animation: StyledToastAnimation.slideFromBottom,
-          reverseAnimation: StyledToastAnimation.slideToBottom,
-          position: StyledToastPosition.bottom,
-          duration: Duration(seconds: 3),
-          backgroundColor: Colors.redAccent,
-          textStyle: TextStyle(color: Colors.white),
-        );
-        return;
-      }
-      validateEmail(email);
-      validatePassword(password);
       await AuthController().login(email: email, password: password);
     } catch (e) {
-      showToast(
-        e.toString(),
-        context: context,
-        animation: StyledToastAnimation.slideFromBottom,
-        reverseAnimation: StyledToastAnimation.slideToBottom,
-        position: StyledToastPosition.bottom,
-        duration: Duration(seconds: 3),
-        backgroundColor: Colors.redAccent,
-        textStyle: TextStyle(color: Colors.white),
-      );
+      showToast(e.toString().replaceFirst('Exception: ', ''), context: context, animation: StyledToastAnimation.slideFromBottom, reverseAnimation: StyledToastAnimation.slideToBottom, position: StyledToastPosition.bottom, duration: const Duration(seconds: 3), backgroundColor: AppColors.error, textStyle: const TextStyle(color: Colors.white));
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -69,132 +60,79 @@ class _LoginState extends State<Login> {
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              children: [
-                Container(
-                  margin: const EdgeInsets.all(16.0),
-                  width: double.infinity,
-                  height: 200,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
+          child: FadeTransition(
+            opacity: _fadeAnim,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Column(
+                children: [
+                  const SizedBox(height: 60),
+                  Container(
+                    width: 100,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Image.asset('assets/icons/icon.png', width: 80, height: 80),
                   ),
-                  child: Column(
+                  const SizedBox(height: 24),
+                  Text('Welcome Back!', style: Theme.of(context).textTheme.headlineMedium),
+                  const SizedBox(height: 8),
+                  Text('Continue your learning journey', style: Theme.of(context).textTheme.bodyMedium),
+                  const SizedBox(height: 40),
+                  TextField(
+                    controller: _emailController,
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: const InputDecoration(
+                      labelText: 'Email',
+                      hintText: 'Enter your email',
+                      prefixIcon: Icon(Icons.email_outlined),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    obscureText: _ishidden,
+                    controller: _passwordController,
+                    decoration: InputDecoration(
+                      labelText: 'Password',
+                      hintText: 'Enter your password',
+                      prefixIcon: const Icon(Icons.lock_outline),
+                      suffixIcon: IconButton(
+                        icon: Icon(_ishidden ? Icons.visibility_off_outlined : Icons.visibility_outlined),
+                        onPressed: () => setState(() => _ishidden = !_ishidden),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () {},
+                      child: const Text('Forgot Password?'),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: _isLoading ? null : _login,
+                    child: _isLoading
+                        ? const SizedBox(height: 22, width: 22, child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white))
+                        : const Text('Login'),
+                  ),
+                  const SizedBox(height: 32),
+                  Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      // Row(
-                      //   mainAxisAlignment: MainAxisAlignment.center,
-                      //   crossAxisAlignment: CrossAxisAlignment.center,
-                      //   children: [
-                      //     FaIcon(
-                      //       FontAwesomeIcons.graduationCap,
-                      //       size: 32,
-                      //       color: Theme.of(context).colorScheme.primary,
-                      //     ),
-                      //     Text(
-                      //       "Open Path",
-                      //       style: TextStyle(
-                      //         fontSize: 24,
-                      //         fontWeight: FontWeight.bold,
-                      //         color: Theme.of(context).colorScheme.primary,
-                      //       ),
-                      //     ),
-                      //   ],
-                      // ),
-                      Image.asset(
-                        'assets/icons/icon.png',
-                        width: 150,
-                        height: 150,
+                      Text("Don't have an account? ", style: Theme.of(context).textTheme.bodyMedium),
+                      TextButton(
+                        onPressed: () => context.push('/signup'),
+                        child: const Text('Sign Up'),
                       ),
                     ],
                   ),
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Text(
-                      "Welcome Back!",
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      "Continue your journey today",
-                      style: TextStyle(fontSize: 16, color: Colors.grey),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 30),
-                TextField(
-                  controller: _emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: InputDecoration(
-                    labelText: "Email",
-                    hintText: "Enter your email",
-                    prefixIcon: Icon(Icons.email_outlined),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                ),
-                SizedBox(height: 20),
-                TextField(
-                  obscureText: _ishidden,
-                  controller: _passwordController,
-                  decoration: InputDecoration(
-                    labelText: "Password",
-                    hintText: "Enter your password",
-                    prefixIcon: Icon(Icons.lock_outline),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _ishidden
-                            ? Icons.visibility_off_outlined
-                            : Icons.visibility_outlined,
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _ishidden = !_ishidden;
-                        });
-                      },
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                ),
-                SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: () {
-                    _login();
-                  },
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: Size(double.infinity, 50),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                  ),
-                  child: Text("Login"),
-                ),
-                SizedBox(height: 200),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Text("Don't have an account? "),
-                    TextButton(
-                      onPressed: () {
-                        context.push('/signup');
-                      },
-                      child: Text("Sign Up"),
-                    ),
-                  ],
-                ),
-              ],
+                  const SizedBox(height: 40),
+                ],
+              ),
             ),
           ),
         ),

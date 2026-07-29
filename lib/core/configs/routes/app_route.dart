@@ -28,69 +28,97 @@ final appRouter = GoRouter(
         }
       },
     ),
-    GoRoute(path: '/login', builder: (context, state) => const Login()),
-    GoRoute(path: '/signup', builder: (context, state) => const SignUp()),
-    GoRoute(path: '/home', builder: (context, state) => const Home()),
-    GoRoute(path: '/about_us', builder: (context, state) => const AboutUs()),
+    GoRoute(path: '/login', pageBuilder: (context, state) => _fadePage(const Login(), state)),
+    GoRoute(path: '/signup', pageBuilder: (context, state) => _slidePage(const SignUp(), state)),
+    GoRoute(path: '/home', pageBuilder: (context, state) => _fadePage(const Home(), state)),
+    GoRoute(path: '/about_us', pageBuilder: (context, state) => _slidePage(const AboutUs(), state)),
     GoRoute(
       path: '/course/:courseId',
-      builder: (context, state) {
+      pageBuilder: (context, state) {
         final courseId = state.pathParameters['courseId'] != null
             ? int.tryParse(state.pathParameters['courseId']!)
             : null;
         if (courseId != null) {
-          return CourseDetail(courseId: courseId);
+          return _slidePage(CourseDetail(courseId: courseId), state);
         } else {
-          return const Scaffold(body: Center(child: Text('Invalid course ID')));
+          return _slidePage(const Scaffold(body: Center(child: Text('Invalid course ID'))), state);
         }
       },
     ),
     GoRoute(
       path: '/lesson/:lessonId',
-      builder: (context, state) {
+      pageBuilder: (context, state) {
         final lessonId = state.pathParameters['lessonId'] != null
             ? int.tryParse(state.pathParameters['lessonId']!)
             : null;
         if (lessonId != null) {
-          return LessonDetail(lessonId: lessonId);
+          return _slidePage(LessonDetail(lessonId: lessonId), state);
         } else {
-          return const Scaffold(body: Center(child: Text('Invalid Lesson Id')));
+          return _slidePage(const Scaffold(body: Center(child: Text('Invalid Lesson Id'))), state);
         }
       },
     ),
     GoRoute(
       path: '/edit_profile',
-      builder: (context, state) => const EditProfile(),
+      pageBuilder: (context, state) => _slidePage(const EditProfile(), state),
     ),
     GoRoute(
       path: '/lessons/:lessonId',
-      builder: (context, state) {
+      pageBuilder: (context, state) {
         final lessonId = state.pathParameters['lessonId'] != null
             ? int.tryParse(state.pathParameters['lessonId']!)
             : null;
         if (lessonId != null) {
-          return CourseDetail(courseId: lessonId);
+          return _slidePage(CourseDetail(courseId: lessonId), state);
         } else {
-          return const Scaffold(body: Center(child: Text('Invalid lesson ID')));
+          return _slidePage(const Scaffold(body: Center(child: Text('Invalid lesson ID'))), state);
         }
       },
     ),
     GoRoute(
       path: '/notifications',
-      builder: (context, state) => const NotificationPage(),
+      pageBuilder: (context, state) => _slidePage(const NotificationPage(), state),
     ),
     GoRoute(
       path: '/quiz/:quizId',
-      builder: (context, state) {
+      pageBuilder: (context, state) {
         final quizId = state.pathParameters['quizId'] != null
             ? int.tryParse(state.pathParameters['quizId']!)
             : null;
         if (quizId != null) {
-          return Quiz(quizId: quizId);
+          return _slidePage(Quiz(quizId: quizId), state);
         } else {
-          return const Scaffold(body: Center(child: Text('Invalid quiz ID')));
+          return _slidePage(const Scaffold(body: Center(child: Text('Invalid quiz ID'))), state);
         }
       },
     ),
   ],
 );
+
+CustomTransitionPage _slidePage(Widget child, GoRouterState state) {
+  return CustomTransitionPage(
+    key: state.pageKey,
+    child: child,
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      const begin = Offset(0.3, 0);
+      const end = Offset.zero;
+      const curve = Curves.easeOutCubic;
+      var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+      var fadeTween = Tween<double>(begin: 0.0, end: 1.0).chain(CurveTween(curve: curve));
+      return SlideTransition(
+        position: animation.drive(tween),
+        child: FadeTransition(opacity: animation.drive(fadeTween), child: child),
+      );
+    },
+  );
+}
+
+CustomTransitionPage _fadePage(Widget child, GoRouterState state) {
+  return CustomTransitionPage(
+    key: state.pageKey,
+    child: child,
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      return FadeTransition(opacity: animation, child: child);
+    },
+  );
+}

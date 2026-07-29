@@ -1,15 +1,15 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:open_path/models/course_model.dart';
 import 'package:flutter_styled_toast/flutter_styled_toast.dart';
 import 'package:open_path/repositories/course_api.dart';
 import 'package:go_router/go_router.dart';
+import 'package:open_path/core/theme/app_theme.dart';
 
 class CourseCard extends StatefulWidget {
-  const CourseCard({required this.course, super.key});
-
   final CourseModel course;
+  final bool horizontal;
+
+  const CourseCard({required this.course, this.horizontal = true, super.key});
 
   @override
   State<CourseCard> createState() => _CourseCardState();
@@ -21,139 +21,124 @@ class _CourseCardState extends State<CourseCard> {
   void enrollInCourse(int courseId) async {
     try {
       await _courseAPI.enrollInCourse(courseId);
-      showToast(
-        'Successfully enrolled in the course!',
-        context: context,
-        animation: StyledToastAnimation.slideFromBottom,
-        reverseAnimation: StyledToastAnimation.slideToBottom,
-        position: StyledToastPosition.bottom,
-        duration: const Duration(seconds: 3),
-        backgroundColor: Colors.green,
-        textStyle: const TextStyle(color: Colors.white),
-      );
+      showToast('Successfully enrolled in the course!', context: context, animation: StyledToastAnimation.slideFromBottom, reverseAnimation: StyledToastAnimation.slideToBottom, position: StyledToastPosition.bottom, duration: const Duration(seconds: 3), backgroundColor: AppColors.success, textStyle: const TextStyle(color: Colors.white));
     } catch (e) {
-      showToast(
-        e.toString(),
-        context: context,
-        animation: StyledToastAnimation.slideFromBottom,
-        reverseAnimation: StyledToastAnimation.slideToBottom,
-        position: StyledToastPosition.bottom,
-        duration: const Duration(seconds: 3),
-        backgroundColor: Colors.redAccent,
-        textStyle: const TextStyle(color: Colors.white),
-      );
+      showToast(e.toString().replaceFirst('Exception: ', ''), context: context, animation: StyledToastAnimation.slideFromBottom, reverseAnimation: StyledToastAnimation.slideToBottom, position: StyledToastPosition.bottom, duration: const Duration(seconds: 3), backgroundColor: AppColors.error, textStyle: const TextStyle(color: Colors.white));
     }
   }
 
   @override
-  void initState() {
-    super.initState();
-    log(widget.course.id.toString());
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(8.0),
-      width: 380,
-      height: 200,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8.0),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.5),
-            spreadRadius: 2,
-            blurRadius: 5,
-            offset: Offset(0, 3), // changes position of shadow
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return GestureDetector(
+      onTap: () {
+        if (widget.course.isEnrolled == true) {
+          if (widget.course.enrollmentStatus == 'APPROVED') {
+            context.push('/course/${widget.course.id}');
+          } else {
+            showToast('Your enrollment is pending approval.', context: context, animation: StyledToastAnimation.slideFromBottom, reverseAnimation: StyledToastAnimation.slideToBottom, position: StyledToastPosition.bottom, duration: const Duration(seconds: 3), backgroundColor: AppColors.warning, textStyle: const TextStyle(color: Colors.white));
+          }
+        } else {
+          enrollInCourse(widget.course.id);
+          setState(() {
+            widget.course.copyWith(isEnrolled: true, enrollmentStatus: 'PENDING');
+          });
+        }
+      },
+      child: Container(
+        width: widget.horizontal ? 280 : double.infinity,
+        margin: widget.horizontal ? EdgeInsets.zero : const EdgeInsets.only(bottom: 12),
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.darkSurface : Colors.white,
+          borderRadius: BorderRadius.circular(AppTheme.cardRadius),
+          boxShadow: [
+            BoxShadow(
+              color: isDark ? Colors.black26 : Colors.black.withValues(alpha: 0.06),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
+            Stack(
               children: [
-                Image.network(
-                  widget.course.imageUrl ?? 'https://via.placeholder.com/150',
-                  width: 100,
-                  height: 100,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => const SizedBox(
-                    width: 100,
-                    height: 100,
-                    child: Center(child: Icon(Icons.broken_image, size: 50)),
+                ClipRRect(
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(AppTheme.cardRadius)),
+                  child: Image.network(
+                    widget.course.imageUrl ?? 'https://via.placeholder.com/320x180',
+                    width: double.infinity,
+                    height: 140,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      height: 140,
+                      color: AppColors.primary.withValues(alpha: 0.1),
+                      child: const Center(child: Icon(Icons.school, size: 48, color: AppColors.primary)),
+                    ),
                   ),
                 ),
-                SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        widget.course.title,
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      SizedBox(height: 5),
-                      Text(
-                        widget.course.description,
-                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                      ),
-                    ],
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: widget.course.price > 0 ? AppColors.accent : AppColors.success,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      widget.course.price > 0 ? '${widget.course.price.toStringAsFixed(0)} MMK' : 'Free',
+                      style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
+                    ),
                   ),
                 ),
               ],
             ),
-            SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  widget.course.price > 0
-                      ? '${widget.course.price} MMK'
-                      : 'Free',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                Spacer(),
-                ElevatedButton(
-                  onPressed: () {
-                    if (widget.course.isEnrolled == true) {
-                      widget.course.enrollmentStatus == 'APPROVED'
-                          ? context.push('/course/${widget.course.id}')
-                          : showToast(
-                              'Your enrollment is pending approval.',
-                              context: context,
-                              animation: StyledToastAnimation.slideFromBottom,
-                              reverseAnimation:
-                                  StyledToastAnimation.slideToBottom,
-                              position: StyledToastPosition.bottom,
-                              duration: Duration(seconds: 3),
-                              backgroundColor: Colors.orangeAccent,
-                              textStyle: TextStyle(color: Colors.white),
-                            );
-                    } else {
-                      enrollInCourse(widget.course.id);
-                      setState(() {
-                        widget.course.copyWith(
-                          isEnrolled: true,
-                          enrollmentStatus: 'PENDING',
-                        );
-                      });
-                    }
-                  },
-                  child: Text(
-                    widget.course.isEnrolled == true
-                        ? widget.course.enrollmentStatus == 'APPROVED'
-                              ? 'Explore Course'
-                              : 'Pending Approval'
-                        : 'Enroll',
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.course.title,
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(fontSize: 15),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-              ],
+                  const SizedBox(height: 4),
+                  Text(
+                    widget.course.description,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontSize: 12),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 10),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 36,
+                    child: ElevatedButton(
+                      onPressed: null,
+                      style: ElevatedButton.styleFrom(
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        backgroundColor: widget.course.isEnrolled == true
+                            ? (widget.course.enrollmentStatus == 'APPROVED' ? AppColors.primary.withValues(alpha: 0.1) : AppColors.warning.withValues(alpha: 0.1))
+                            : AppColors.primary,
+                        foregroundColor: widget.course.isEnrolled == true
+                            ? (widget.course.enrollmentStatus == 'APPROVED' ? AppColors.primary : AppColors.warning)
+                            : Colors.white,
+                        padding: EdgeInsets.zero,
+                      ),
+                      child: Text(
+                        widget.course.isEnrolled == true
+                            ? (widget.course.enrollmentStatus == 'APPROVED' ? 'Explore' : 'Pending')
+                            : 'Enroll Now',
+                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),

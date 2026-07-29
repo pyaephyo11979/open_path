@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:open_path/controllers/user_controller.dart';
 import 'package:open_path/models/user_model.dart';
 import 'package:flutter_styled_toast/flutter_styled_toast.dart';
+import 'package:open_path/core/theme/app_theme.dart';
 
 class EditProfile extends StatefulWidget {
   const EditProfile({super.key});
@@ -14,89 +15,20 @@ class _EditProfileState extends State<EditProfile> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController =
-      TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
   bool isChangingPassword = false;
+  bool _isSaving = false;
   final UserController _userController = UserController();
   UserModel? user;
 
   void fetchUser() async {
     final fetchedUser = await _userController.getUserData();
     if (mounted) {
-      user = fetchedUser;
-    }
-  }
-
-  void validateName(String name) {
-    if (name.isEmpty) {
-      throw Exception('Name cannot be empty');
-    }
-    if (name.length < 3) {
-      throw Exception('Name must be at least 3 characters long');
-    }
-  }
-
-  void validateEmail(String email) {
-    String pattern =
-        r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'; // Basic email pattern
-    RegExp regex = RegExp(pattern);
-    if (!regex.hasMatch(email)) {
-      throw Exception('Invalid email format');
-    }
-  }
-
-  void validatePassword(String password) {
-    if (password.length < 8) {
-      throw Exception('Password must be at least 8 characters long');
-    }
-  }
-
-  void saveChanges() async {
-    String name = _nameController.text.trim();
-    String email = _emailController.text.trim();
-    String password = _passwordController.text.trim();
-    String confirmPassword = _confirmPasswordController.text.trim();
-    try {
-      if (name.isEmpty || email.isEmpty) {
-        throw Exception('Please fill in all fields');
-      }
-      if (isChangingPassword == true) {
-        if (password.isEmpty || confirmPassword.isEmpty) {
-          throw Exception('Please fill in all fields');
-        }
-        if (password != confirmPassword) {
-          throw Exception('Passwords do not match');
-        }
-        validatePassword(password);
-      }
-      validateName(name);
-      validateEmail(email);
-      await _userController.updateUserProfile(
-        name: name,
-        email: email,
-        password: password,
-      );
-      showToast(
-        'Profile updated successfully',
-        context: context,
-        animation: StyledToastAnimation.slideFromBottom,
-        reverseAnimation: StyledToastAnimation.slideToBottom,
-        position: StyledToastPosition.bottom,
-        duration: Duration(seconds: 3),
-        backgroundColor: Colors.greenAccent,
-        textStyle: TextStyle(color: Colors.white),
-      );
-    } catch (e) {
-      showToast(
-        e.toString(),
-        context: context,
-        animation: StyledToastAnimation.slideFromBottom,
-        reverseAnimation: StyledToastAnimation.slideToBottom,
-        position: StyledToastPosition.bottom,
-        duration: Duration(seconds: 3),
-        backgroundColor: Colors.redAccent,
-        textStyle: TextStyle(color: Colors.white),
-      );
+      setState(() {
+        user = fetchedUser;
+        _nameController.text = fetchedUser.name;
+        _emailController.text = fetchedUser.email;
+      });
     }
   }
 
@@ -104,55 +36,146 @@ class _EditProfileState extends State<EditProfile> {
   void initState() {
     super.initState();
     fetchUser();
-    _nameController.text = user?.name ?? '';
-    _emailController.text = user?.email ?? '';
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
+
+  void saveChanges() async {
+    String name = _nameController.text.trim();
+    String email = _emailController.text.trim();
+    String password = _passwordController.text.trim();
+    String confirmPassword = _confirmPasswordController.text.trim();
+
+    if (name.isEmpty || email.isEmpty) {
+      showToast('Please fill in required fields', context: context, animation: StyledToastAnimation.slideFromBottom, reverseAnimation: StyledToastAnimation.slideToBottom, position: StyledToastPosition.bottom, duration: const Duration(seconds: 3), backgroundColor: AppColors.error, textStyle: const TextStyle(color: Colors.white));
+      return;
+    }
+    if (isChangingPassword) {
+      if (password.isEmpty || confirmPassword.isEmpty) {
+        showToast('Please fill in password fields', context: context, animation: StyledToastAnimation.slideFromBottom, reverseAnimation: StyledToastAnimation.slideToBottom, position: StyledToastPosition.bottom, duration: const Duration(seconds: 3), backgroundColor: AppColors.error, textStyle: const TextStyle(color: Colors.white));
+        return;
+      }
+      if (password != confirmPassword) {
+        showToast('Passwords do not match', context: context, animation: StyledToastAnimation.slideFromBottom, reverseAnimation: StyledToastAnimation.slideToBottom, position: StyledToastPosition.bottom, duration: const Duration(seconds: 3), backgroundColor: AppColors.error, textStyle: const TextStyle(color: Colors.white));
+        return;
+      }
+    }
+
+    setState(() => _isSaving = true);
+    try {
+      await _userController.updateUserProfile(name: name, email: email, password: password);
+      showToast('Profile updated successfully', context: context, animation: StyledToastAnimation.slideFromBottom, reverseAnimation: StyledToastAnimation.slideToBottom, position: StyledToastPosition.bottom, duration: const Duration(seconds: 3), backgroundColor: AppColors.success, textStyle: const TextStyle(color: Colors.white));
+      if (mounted) Navigator.of(context).pop();
+    } catch (e) {
+      showToast(e.toString().replaceFirst('Exception: ', ''), context: context, animation: StyledToastAnimation.slideFromBottom, reverseAnimation: StyledToastAnimation.slideToBottom, position: StyledToastPosition.bottom, duration: const Duration(seconds: 3), backgroundColor: AppColors.error, textStyle: const TextStyle(color: Colors.white));
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Edit Profile')),
-      body: Padding(
-        padding: EdgeInsets.all(16.0),
+      body: SingleChildScrollView(
+        padding: AppTheme.screenPadding,
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            TextField(
-              controller: _nameController,
-              decoration: InputDecoration(labelText: 'Name'),
-            ),
-            SizedBox(height: 16),
-            TextField(
-              controller: _emailController,
-              decoration: InputDecoration(labelText: 'Email'),
-            ),
-            SizedBox(height: 32),
-            TextButton(
-              onPressed: () {
-                setState(() {
-                  isChangingPassword = !isChangingPassword;
-                });
-              },
-              child: Text('Change Password'),
-            ),
-            if (isChangingPassword == true)
-              Column(
+            Center(
+              child: Stack(
                 children: [
-                  TextField(
-                    controller: _passwordController,
-                    decoration: InputDecoration(labelText: 'Password'),
+                  Container(
+                    width: 100,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Center(
+                      child: Text(
+                        user?.name.isNotEmpty == true ? user!.name[0].toUpperCase() : '?',
+                        style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: AppColors.primary),
+                      ),
+                    ),
                   ),
-                  SizedBox(height: 16),
-                  TextField(
-                    controller: _confirmPasswordController,
-                    decoration: InputDecoration(labelText: 'Confirm Password'),
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: Container(
+                      width: 32,
+                      height: 32,
+                      decoration: const BoxDecoration(
+                        color: AppColors.primary,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.camera_alt, size: 18, color: Colors.white),
+                    ),
                   ),
                 ],
               ),
-            SizedBox(height: 20),
+            ),
+            const SizedBox(height: 32),
+            TextField(
+              controller: _nameController,
+              decoration: const InputDecoration(
+                labelText: 'Name',
+                prefixIcon: Icon(Icons.person_outline),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _emailController,
+              decoration: const InputDecoration(
+                labelText: 'Email',
+                prefixIcon: Icon(Icons.email_outlined),
+              ),
+            ),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                const Icon(Icons.lock_outline, size: 18, color: AppColors.textSecondary),
+                const SizedBox(width: 8),
+                Text('Password', style: Theme.of(context).textTheme.titleLarge),
+                const Spacer(),
+                TextButton(
+                  onPressed: () => setState(() => isChangingPassword = !isChangingPassword),
+                  child: Text(isChangingPassword ? 'Cancel' : 'Change'),
+                ),
+              ],
+            ),
+            if (isChangingPassword) ...[
+              const SizedBox(height: 12),
+              TextField(
+                controller: _passwordController,
+                obscureText: true,
+                decoration: const InputDecoration(
+                  labelText: 'New Password',
+                  prefixIcon: Icon(Icons.lock_outline),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _confirmPasswordController,
+                obscureText: true,
+                decoration: const InputDecoration(
+                  labelText: 'Confirm Password',
+                  prefixIcon: Icon(Icons.lock_outline),
+                ),
+              ),
+            ],
+            const SizedBox(height: 32),
             ElevatedButton(
-              onPressed: null, // Implement save functionality
-              child: Text('Save Changes'),
+              onPressed: _isSaving ? null : saveChanges,
+              child: _isSaving
+                  ? const SizedBox(height: 22, width: 22, child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white))
+                  : const Text('Save Changes'),
             ),
           ],
         ),

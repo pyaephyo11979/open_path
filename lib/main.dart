@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:open_path/firebase_options.dart';
 import 'package:open_path/core/configs/routes/app_route.dart';
 import 'package:open_path/core/services/notification_service.dart';
+import 'package:open_path/core/theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,15 +25,8 @@ class MyApp extends StatelessWidget {
     return MaterialApp.router(
       title: 'Open Path',
       themeMode: ThemeMode.system,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightBlue),
-      ),
-      darkTheme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.lightBlue,
-          brightness: Brightness.dark,
-        ),
-      ),
+      theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
       debugShowCheckedModeBanner: false,
       routerConfig: appRouter,
     );

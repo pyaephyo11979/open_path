@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:open_path/views/pages/course_page.dart';
 import 'package:open_path/views/pages/home_page.dart';
 import 'package:open_path/views/pages/profile_page.dart';
+import 'package:open_path/core/theme/app_theme.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -26,9 +27,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     _tabController = TabController(length: 3, vsync: this);
     _tabController.addListener(() {
       if (_tabController.index != _currentIndex) {
-        setState(() {
-          _currentIndex = _tabController.index;
-        });
+        setState(() => _currentIndex = _tabController.index);
       }
     });
   }
@@ -39,108 +38,98 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     super.dispose();
   }
 
+  String get _title {
+    switch (_currentIndex) {
+      case 0: return 'Home';
+      case 1: return 'Courses';
+      case 2: return 'Profile';
+      default: return '';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       appBar: AppBar(
-        // title: Row(
-        //   mainAxisAlignment: MainAxisAlignment.start,
-        //   crossAxisAlignment: CrossAxisAlignment.center,
-        //   children: [
-        //     const SizedBox(width: 10),
-        //     FaIcon(
-        //       FontAwesomeIcons.graduationCap,
-        //       size: 32,
-        //       color: Theme.of(context).colorScheme.primary,
-        //     ),
-        //     Text(
-        //       'Open Path',
-        //       style: TextStyle(
-        //         fontSize: 24,
-        //         fontWeight: FontWeight.bold,
-        //         color: Theme.of(context).colorScheme.primary,
-        //       ),
-        //     ),
-        //   ],
-        // ),
-        title: Image.asset(
-          'assets/icons/banner_icon.png',
-          width: 1000,
-          height: 80,
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Image.asset('assets/icons/icon.png', width: 24, height: 24),
+            ),
+            const SizedBox(width: 10),
+            Text(_title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+          ],
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.notifications),
-            onPressed: () {
-              context.push('/notifications');
-            },
+            icon: const Icon(Icons.notifications_outlined),
+            onPressed: () => context.push('/notifications'),
           ),
         ],
       ),
       body: BottomBar(
-        layout: BottomBarLayout(
+        layout: const BottomBarLayout(
           width: 400,
-          borderRadius: BorderRadius.circular(30),
+          borderRadius: BorderRadius.all(Radius.circular(30)),
         ),
-        scrollBehavior: BottomBarScrollBehavior(hideOnScroll: true),
+        scrollBehavior: const BottomBarScrollBehavior(hideOnScroll: true),
         theme: BottomBarThemeData(
           barDecoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.6),
+            color: (isDark ? AppColors.darkSurface : Colors.white).withValues(alpha: 0.85),
             borderRadius: BorderRadius.circular(30),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.2),
-              width: 1,
-            ),
+            border: Border.all(color: (isDark ? Colors.white12 : AppColors.border), width: 1),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
-                blurRadius: 10,
+                color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
+                blurRadius: 16,
                 offset: const Offset(0, 4),
               ),
             ],
           ),
           iconDecoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.primary,
+            color: AppColors.primary,
             shape: BoxShape.circle,
           ),
         ),
         motion: BottomBarMotion.cupertino(
           preset: BottomBarCupertinoMotion.snappy,
-          duration: Duration(milliseconds: 300),
-          slideStart: Offset(0, 3),
+          duration: const Duration(milliseconds: 300),
+          slideStart: const Offset(0, 3),
         ),
         body: TabBarView(controller: _tabController, children: _pages),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(30),
           child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
+            filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
             child: Padding(
-              padding: const EdgeInsets.all(5.0),
+              padding: const EdgeInsets.all(6),
               child: BottomBarItems(
                 children: [
                   BottomBarItem(
-                    icon: const FaIcon(FontAwesomeIcons.house),
+                    icon: FaIcon(_currentIndex == 0 ? FontAwesomeIcons.house : FontAwesomeIcons.house),
                     label: const Text('Home'),
                     selected: _currentIndex == 0,
-                    onTap: () {
-                      _tabController.animateTo(0);
-                    },
+                    onTap: () => _tabController.animateTo(0),
                   ),
                   BottomBarItem(
-                    icon: FaIcon(FontAwesomeIcons.compass),
+                    icon: FaIcon(_currentIndex == 1 ? FontAwesomeIcons.compass : FontAwesomeIcons.compass),
                     label: const Text('Courses'),
                     selected: _currentIndex == 1,
-                    onTap: () {
-                      _tabController.animateTo(1);
-                    },
+                    onTap: () => _tabController.animateTo(1),
                   ),
                   BottomBarItem(
-                    icon: const FaIcon(FontAwesomeIcons.user),
+                    icon: FaIcon(_currentIndex == 2 ? FontAwesomeIcons.user : FontAwesomeIcons.user),
                     label: const Text('Profile'),
                     selected: _currentIndex == 2,
-                    onTap: () {
-                      _tabController.animateTo(2);
-                    },
+                    onTap: () => _tabController.animateTo(2),
                   ),
                 ],
               ),
