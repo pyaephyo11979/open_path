@@ -28,11 +28,13 @@ class UserController {
     required String email,
     String? password,
   }) async {
-    return await _userApi.updateProfile(
-      name: name,
-      email: email,
-      password: password,
-    );
+    return password != null
+        ? await _userApi.updateProfile(
+            name: name,
+            email: email,
+            password: password,
+          )
+        : await _userApi.updateProfile(name: name, email: email);
   }
 
   Future<UserModel> updateProfileImage(String imagePath) async {
