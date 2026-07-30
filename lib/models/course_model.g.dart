@@ -54,6 +54,7 @@ Questions _$QuestionsFromJson(Map<String, dynamic> json) => Questions(
   id: (json['id'] as num).toInt(),
   question: json['question'] as String,
   quizId: (json['quizId'] as num).toInt(),
+  sequence: (json['sequence'] as num?)?.toInt(),
   createdAt: DateTime.parse(json['createdAt'] as String),
   updatedAt: DateTime.parse(json['updatedAt'] as String),
   answers: json['answers'] != null
@@ -67,6 +68,7 @@ Map<String, dynamic> _$QuestionsToJson(Questions instance) => <String, dynamic>{
   'id': instance.id,
   'question': instance.question,
   'quizId': instance.quizId,
+  'sequence': instance.sequence,
   'createdAt': instance.createdAt.toIso8601String(),
   'updatedAt': instance.updatedAt.toIso8601String(),
   'answers': instance.answers,

@@ -138,12 +138,6 @@ class _ProfilePageState extends State<ProfilePage>
                                     '${enrolledCourses?.where((e) => e.status == 'APPROVED').length ?? 0}',
                                 icon: Icons.trending_up,
                               ),
-                              const SizedBox(width: 12),
-                              _StatCard(
-                                label: 'Completed',
-                                value: '0',
-                                icon: Icons.check_circle,
-                              ),
                             ],
                           ),
                           const SizedBox(height: 20),

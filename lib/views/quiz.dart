@@ -45,6 +45,7 @@ class _QuizState extends State<Quiz> with SingleTickerProviderStateMixin {
     if (mounted) {
       setState(() {
         _quiz = fetchedQuiz;
+        _quiz?.questions?.sort((a, b) => (a.sequence ?? 0).compareTo(b.sequence ?? 0));
         _isLoading = false;
       });
     }

@@ -57,6 +57,7 @@ class Questions {
   final int id;
   final String question;
   final int quizId;
+  final int? sequence;
   final DateTime createdAt;
   final DateTime updatedAt;
   final List<Answers>? answers;
@@ -65,6 +66,7 @@ class Questions {
     required this.id,
     required this.question,
     required this.quizId,
+    this.sequence,
     required this.createdAt,
     required this.updatedAt,
     this.answers,
