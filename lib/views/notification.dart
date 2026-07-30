@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:open_path/core/services/notification_service.dart';
 import 'package:open_path/core/theme/app_theme.dart';
+import 'package:go_router/go_router.dart';
 
 class NotificationPage extends StatefulWidget {
   const NotificationPage({super.key});
@@ -88,47 +89,55 @@ class _NotificationTile extends StatelessWidget {
     final sentTime = message.sentTime;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.darkSurface : Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: isDark ? Colors.white12 : AppColors.divider),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
+    return GestureDetector(
+      onTap: () {
+        final route = message.data['route'];
+        if (route != null && route.isNotEmpty) {
+          context.go(route);
+        }
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.darkSurface : Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: isDark ? Colors.white12 : AppColors.divider),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.notifications, color: AppColors.primary, size: 22),
             ),
-            child: const Icon(Icons.notifications, color: AppColors.primary, size: 22),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
-                if (body.isNotEmpty) ...[
-                  const SizedBox(height: 4),
-                  Text(body, style: Theme.of(context).textTheme.bodyMedium),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
+                  if (body.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(body, style: Theme.of(context).textTheme.bodyMedium),
+                  ],
+                  if (sentTime != null) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      _formatTime(sentTime),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 11),
+                    ),
+                  ],
                 ],
-                if (sentTime != null) ...[
-                  const SizedBox(height: 6),
-                  Text(
-                    _formatTime(sentTime),
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 11),
-                  ),
-                ],
-              ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

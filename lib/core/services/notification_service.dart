@@ -6,6 +6,8 @@ import 'package:open_path/core/services/secure_storage_service.dart';
 import 'package:open_path/repositories/notification_api.dart';
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, TargetPlatform;
+import 'package:go_router/go_router.dart';
+import 'package:open_path/core/configs/routes/app_route.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -46,6 +48,10 @@ class NotificationService {
     final initialMessage = await _messaging.getInitialMessage();
     if (initialMessage != null) {
       _notifications.insert(0, initialMessage);
+      final route = initialMessage.data['route'];
+      if (route != null && route.isNotEmpty) {
+        rootKey.currentContext?.go(route);
+      }
     }
   }
 
@@ -68,7 +74,15 @@ class NotificationService {
       iOS: darwinSettings,
     );
 
-    await _localNotifications.initialize(settings: initSettings);
+    await _localNotifications.initialize(
+      settings: initSettings,
+      onDidReceiveNotificationResponse: (response) {
+        final route = response.payload;
+        if (route != null && route.isNotEmpty) {
+          rootKey.currentContext?.go(route);
+        }
+      },
+    );
 
     await _localNotifications
         .resolvePlatformSpecificImplementation<
@@ -84,6 +98,10 @@ class NotificationService {
 
   void _handleMessageOpenedApp(RemoteMessage message) {
     _notifications.insert(0, message);
+    final route = message.data['route'];
+    if (route != null && route.isNotEmpty) {
+      rootKey.currentContext?.go(route);
+    }
   }
 
   Future<void> _handleTokenRefresh(String newToken) async {
