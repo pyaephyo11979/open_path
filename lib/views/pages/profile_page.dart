@@ -14,7 +14,8 @@ class ProfilePage extends StatefulWidget {
   State<ProfilePage> createState() => _ProfilePageState();
 }
 
-class _ProfilePageState extends State<ProfilePage> with AutomaticKeepAliveClientMixin {
+class _ProfilePageState extends State<ProfilePage>
+    with AutomaticKeepAliveClientMixin {
   UserModel? user;
   List<Enrollment>? enrolledCourses;
   bool isLoading = true;
@@ -66,168 +67,162 @@ class _ProfilePageState extends State<ProfilePage> with AutomaticKeepAliveClient
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(left: 20, top: 20),
-                    child: Container(
-                      width: 90,
-                      height: 90,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: isDark
-                              ? AppColors.darkBackground
-                              : Colors.white,
-                          width: 4,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.1),
-                            blurRadius: 12,
-                            offset: const Offset(0, 4),
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(left: 20, top: 20),
+                      child: Container(
+                        width: 90,
+                        height: 90,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: isDark
+                                ? AppColors.darkBackground
+                                : Colors.white,
+                            width: 4,
                           ),
-                        ],
-                      ),
-                      child: ClipOval(
-                        child: user?.imageUrl != null
-                            ? Image.network(
-                                user!.imageUrl!,
-                                width: 90,
-                                height: 90,
-                                fit: BoxFit.cover,
-                              )
-                            : CircleAvatar(
-                                backgroundColor: AppColors.primary
-                                    .withValues(alpha: 0.1),
-                                child: Text(
-                                  user?.name.isNotEmpty == true
-                                      ? user!.name[0].toUpperCase()
-                                      : '?',
-                                  style: const TextStyle(
-                                    fontSize: 32,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.primary,
-                                  ),
-                                ),
-                              ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          user?.name ?? '',
-                          style: Theme.of(context).textTheme.headlineSmall,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          user?.email ?? '',
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                        const SizedBox(height: 24),
-                        Row(
-                          children: [
-                            _StatCard(
-                              label: 'Courses',
-                              value: '${enrolledCourses?.length ?? 0}',
-                              icon: Icons.menu_book,
-                            ),
-                            const SizedBox(width: 12),
-                            _StatCard(
-                              label: 'Learning',
-                              value:
-                                  '${enrolledCourses?.where((e) => e.status == 'APPROVED').length ?? 0}',
-                              icon: Icons.trending_up,
-                            ),
-                            const SizedBox(width: 12),
-                            _StatCard(
-                              label: 'Completed',
-                              value: '0',
-                              icon: Icons.check_circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.1),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 20),
-                        Text(
-                          'Currently Learning',
-                          style: Theme.of(context).textTheme.titleLarge,
+                        child: ClipOval(
+                          child: CircleAvatar(
+                            backgroundColor: AppColors.primary.withValues(
+                              alpha: 0.1,
+                            ),
+                            child: Text(
+                              user?.name.isNotEmpty == true
+                                  ? user!.name[0].toUpperCase()
+                                  : '?',
+                              style: const TextStyle(
+                                fontSize: 32,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                          ),
                         ),
-                        const SizedBox(height: 12),
-                        SizedBox(
-                          height: 270,
-                          child:
-                              enrolledCourses != null &&
-                                  enrolledCourses!.any(
-                                    (e) => e.status == 'APPROVED',
-                                  )
-                              ? ListView.separated(
-                                  scrollDirection: Axis.horizontal,
-                                  itemCount: enrolledCourses!
-                                      .where((e) => e.status == 'APPROVED')
-                                      .length,
-                                  separatorBuilder: (_, __) =>
-                                      const SizedBox(width: 12),
-                                  itemBuilder: (context, index) {
-                                    final approved = enrolledCourses!
-                                        .where((e) => e.status == 'APPROVED')
-                                        .toList()[index];
-                                    if (approved.course == null)
-                                      return const SizedBox.shrink();
-                                    return SizedBox(
-                                      width: 260,
-                                      child: CourseCard(
-                                        course: approved.course!,
-                                        horizontal: false,
-                                      ),
-                                    );
-                                  },
-                                )
-                              : Center(
-                                  child: Text(
-                                    'No courses yet',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodyMedium
-                                        ?.copyWith(
-                                          color: AppColors.textSecondary,
-                                        ),
-                                  ),
-                                ),
-                        ),
-                        const SizedBox(height: 28),
-                        _MenuItem(
-                          icon: Icons.edit_outlined,
-                          title: 'Edit Profile',
-                          onTap: () => context.push('/edit_profile'),
-                        ),
-                        _MenuItem(
-                          icon: Icons.notifications_outlined,
-                          title: 'Notifications',
-                          onTap: () => context.push('/notifications'),
-                        ),
-                        _MenuItem(
-                          icon: Icons.info_outline,
-                          title: 'About Us',
-                          onTap: () => context.push('/about_us'),
-                        ),
-                        const Divider(height: 32),
-                        _MenuItem(
-                          icon: Icons.logout,
-                          title: 'Logout',
-                          iconColor: AppColors.error,
-                          textColor: AppColors.error,
-                          onTap: logout,
-                        ),
-                        const SizedBox(height: 40),
-                      ],
+                      ),
                     ),
-                  ),
-                ],
-              ),
+                    const SizedBox(height: 16),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            user?.name ?? '',
+                            style: Theme.of(context).textTheme.headlineSmall,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            user?.email ?? '',
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                          const SizedBox(height: 24),
+                          Row(
+                            children: [
+                              _StatCard(
+                                label: 'Courses',
+                                value: '${enrolledCourses?.length ?? 0}',
+                                icon: Icons.menu_book,
+                              ),
+                              const SizedBox(width: 12),
+                              _StatCard(
+                                label: 'Learning',
+                                value:
+                                    '${enrolledCourses?.where((e) => e.status == 'APPROVED').length ?? 0}',
+                                icon: Icons.trending_up,
+                              ),
+                              const SizedBox(width: 12),
+                              _StatCard(
+                                label: 'Completed',
+                                value: '0',
+                                icon: Icons.check_circle,
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 20),
+                          Text(
+                            'Currently Learning',
+                            style: Theme.of(context).textTheme.titleLarge,
+                          ),
+                          const SizedBox(height: 12),
+                          SizedBox(
+                            height: 270,
+                            child:
+                                enrolledCourses != null &&
+                                    enrolledCourses!.any(
+                                      (e) => e.status == 'APPROVED',
+                                    )
+                                ? ListView.separated(
+                                    scrollDirection: Axis.horizontal,
+                                    itemCount: enrolledCourses!
+                                        .where((e) => e.status == 'APPROVED')
+                                        .length,
+                                    separatorBuilder: (_, __) =>
+                                        const SizedBox(width: 12),
+                                    itemBuilder: (context, index) {
+                                      final approved = enrolledCourses!
+                                          .where((e) => e.status == 'APPROVED')
+                                          .toList()[index];
+                                      if (approved.course == null)
+                                        return const SizedBox.shrink();
+                                      return SizedBox(
+                                        width: 260,
+                                        child: CourseCard(
+                                          course: approved.course!,
+                                          horizontal: false,
+                                        ),
+                                      );
+                                    },
+                                  )
+                                : Center(
+                                    child: Text(
+                                      'No courses yet',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium
+                                          ?.copyWith(
+                                            color: AppColors.textSecondary,
+                                          ),
+                                    ),
+                                  ),
+                          ),
+                          const SizedBox(height: 28),
+                          _MenuItem(
+                            icon: Icons.edit_outlined,
+                            title: 'Edit Profile',
+                            onTap: () => context.push('/edit_profile'),
+                          ),
+                          _MenuItem(
+                            icon: Icons.notifications_outlined,
+                            title: 'Notifications',
+                            onTap: () => context.push('/notifications'),
+                          ),
+                          _MenuItem(
+                            icon: Icons.info_outline,
+                            title: 'About Us',
+                            onTap: () => context.push('/about_us'),
+                          ),
+                          const Divider(height: 32),
+                          _MenuItem(
+                            icon: Icons.logout,
+                            title: 'Logout',
+                            iconColor: AppColors.error,
+                            textColor: AppColors.error,
+                            onTap: logout,
+                          ),
+                          const SizedBox(height: 40),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
     );
@@ -279,7 +274,6 @@ class _StatCard extends StatelessWidget {
 class _MenuItem extends StatelessWidget {
   final IconData icon;
   final String title;
-  final Widget? trailing;
   final Color? iconColor;
   final Color? textColor;
   final VoidCallback? onTap;
@@ -287,7 +281,6 @@ class _MenuItem extends StatelessWidget {
   const _MenuItem({
     required this.icon,
     required this.title,
-    this.trailing,
     this.iconColor,
     this.textColor,
     this.onTap,
@@ -298,9 +291,7 @@ class _MenuItem extends StatelessWidget {
     return ListTile(
       leading: Icon(icon, color: iconColor ?? AppColors.primary),
       title: Text(title, style: TextStyle(color: textColor)),
-      trailing:
-          trailing ??
-          const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+      trailing: const Icon(Icons.chevron_right, color: AppColors.textSecondary),
       onTap: onTap,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
     );
