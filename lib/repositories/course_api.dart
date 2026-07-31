@@ -76,4 +76,13 @@ class CourseAPI {
     final List data = response.data['data'];
     return data.map((json) => CourseModel.fromJson(json)).toList();
   }
+
+  Future<List<Map<String, dynamic>>> getQuizAttempts(int quizId) async {
+    final response = await _apiService.get(
+      url: '/quizzes/attempts/$quizId',
+      isTokenNeed: true,
+    );
+    final List data = response.data['data'];
+    return data.map((json) => json as Map<String, dynamic>).toList();
+  }
 }

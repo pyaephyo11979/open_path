@@ -41,4 +41,8 @@ class CourseController {
   Future<List<CourseModel>> searchCourse({required String query}) async {
     return await _courseAPI.searchCourse(query: query);
   }
+
+  Future<List<Map<String, dynamic>>> fetchQuizScores(int quizId) async {
+    return await _courseAPI.getQuizAttempts(quizId);
+  }
 }
