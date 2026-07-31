@@ -20,6 +20,19 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
   late final AnimationController _animController;
   late final Animation<double> _fadeAnim;
 
+  void _validateEmail(String email) {
+    final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
+    if (!emailRegex.hasMatch(email)) {
+      throw Exception('Invalid email address');
+    }
+  }
+
+  void _validatePassword(String password) {
+    if (password.length < 8) {
+      throw Exception('Password must be at least 8 characters long');
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -45,14 +58,38 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
     String email = _emailController.text.trim();
     String password = _passwordController.text.trim();
     if (name.isEmpty || email.isEmpty || password.isEmpty) {
-      showToast('Please fill in all fields', context: context, animation: StyledToastAnimation.slideFromBottom, reverseAnimation: StyledToastAnimation.slideToBottom, position: StyledToastPosition.bottom, duration: const Duration(seconds: 3), backgroundColor: AppColors.error, textStyle: const TextStyle(color: Colors.white));
+      showToast(
+        'Please fill in all fields',
+        context: context,
+        animation: StyledToastAnimation.slideFromBottom,
+        reverseAnimation: StyledToastAnimation.slideToBottom,
+        position: StyledToastPosition.bottom,
+        duration: const Duration(seconds: 3),
+        backgroundColor: AppColors.error,
+        textStyle: const TextStyle(color: Colors.white),
+      );
       return;
     }
     setState(() => _isLoading = true);
     try {
-      await AuthController().signUp(name: name, email: email, password: password);
+      _validateEmail(email);
+      _validatePassword(password);
+      await AuthController().signUp(
+        name: name,
+        email: email,
+        password: password,
+      );
     } catch (e) {
-      showToast(e.toString().replaceFirst('Exception: ', ''), context: context, animation: StyledToastAnimation.slideFromBottom, reverseAnimation: StyledToastAnimation.slideToBottom, position: StyledToastPosition.bottom, duration: const Duration(seconds: 3), backgroundColor: AppColors.error, textStyle: const TextStyle(color: Colors.white));
+      showToast(
+        e.toString().replaceFirst('Exception: ', ''),
+        context: context,
+        animation: StyledToastAnimation.slideFromBottom,
+        reverseAnimation: StyledToastAnimation.slideToBottom,
+        position: StyledToastPosition.bottom,
+        duration: const Duration(seconds: 3),
+        backgroundColor: AppColors.error,
+        textStyle: const TextStyle(color: Colors.white),
+      );
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -77,12 +114,22 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
                       color: AppColors.primary.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
-                    child: Image.asset('assets/icons/icon.png', width: 80, height: 80),
+                    child: Image.asset(
+                      'assets/icons/icon.png',
+                      width: 80,
+                      height: 80,
+                    ),
                   ),
                   const SizedBox(height: 24),
-                  Text('Begin Your Path', style: Theme.of(context).textTheme.headlineMedium),
+                  Text(
+                    'Begin Your Path',
+                    style: Theme.of(context).textTheme.headlineMedium,
+                  ),
                   const SizedBox(height: 8),
-                  Text('Create an account to get started', style: Theme.of(context).textTheme.bodyMedium),
+                  Text(
+                    'Create an account to get started',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
                   const SizedBox(height: 40),
                   TextField(
                     controller: _nameController,
@@ -112,7 +159,11 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
                       hintText: 'At least 8 characters',
                       prefixIcon: const Icon(Icons.lock_outlined),
                       suffixIcon: IconButton(
-                        icon: Icon(_ishidden ? Icons.visibility_off_outlined : Icons.visibility_outlined),
+                        icon: Icon(
+                          _ishidden
+                              ? Icons.visibility_off_outlined
+                              : Icons.visibility_outlined,
+                        ),
                         onPressed: () => setState(() => _ishidden = !_ishidden),
                       ),
                     ),
@@ -121,14 +172,24 @@ class _SignUpState extends State<SignUp> with SingleTickerProviderStateMixin {
                   ElevatedButton(
                     onPressed: _isLoading ? null : _signUp,
                     child: _isLoading
-                        ? const SizedBox(height: 22, width: 22, child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white))
+                        ? const SizedBox(
+                            height: 22,
+                            width: 22,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.5,
+                              color: Colors.white,
+                            ),
+                          )
                         : const Text('Create Account'),
                   ),
                   const SizedBox(height: 32),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text("Already have an account? ", style: Theme.of(context).textTheme.bodyMedium),
+                      Text(
+                        "Already have an account? ",
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
                       TextButton(
                         onPressed: () => context.push('/login'),
                         child: const Text('Login'),

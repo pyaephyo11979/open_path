@@ -19,6 +19,19 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
   late final AnimationController _animController;
   late final Animation<double> _fadeAnim;
 
+  void _validateEmail(String email) {
+    final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+');
+    if (!emailRegex.hasMatch(email)) {
+      throw Exception('Invalid email address');
+    }
+  }
+
+  void _validatePassword(String password) {
+    if (password.length < 8) {
+      throw Exception('Password must be at least 8 characters long');
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -42,14 +55,34 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
     String email = _emailController.text.trim();
     String password = _passwordController.text.trim();
     if (email.isEmpty || password.isEmpty) {
-      showToast('Please fill in all fields', context: context, animation: StyledToastAnimation.slideFromBottom, reverseAnimation: StyledToastAnimation.slideToBottom, position: StyledToastPosition.bottom, duration: const Duration(seconds: 3), backgroundColor: AppColors.error, textStyle: const TextStyle(color: Colors.white));
+      showToast(
+        'Please fill in all fields',
+        context: context,
+        animation: StyledToastAnimation.slideFromBottom,
+        reverseAnimation: StyledToastAnimation.slideToBottom,
+        position: StyledToastPosition.bottom,
+        duration: const Duration(seconds: 3),
+        backgroundColor: AppColors.error,
+        textStyle: const TextStyle(color: Colors.white),
+      );
       return;
     }
     setState(() => _isLoading = true);
     try {
+      _validateEmail(email);
+      _validatePassword(password);
       await AuthController().login(email: email, password: password);
     } catch (e) {
-      showToast(e.toString().replaceFirst('Exception: ', ''), context: context, animation: StyledToastAnimation.slideFromBottom, reverseAnimation: StyledToastAnimation.slideToBottom, position: StyledToastPosition.bottom, duration: const Duration(seconds: 3), backgroundColor: AppColors.error, textStyle: const TextStyle(color: Colors.white));
+      showToast(
+        e.toString().replaceFirst('Exception: ', ''),
+        context: context,
+        animation: StyledToastAnimation.slideFromBottom,
+        reverseAnimation: StyledToastAnimation.slideToBottom,
+        position: StyledToastPosition.bottom,
+        duration: const Duration(seconds: 3),
+        backgroundColor: AppColors.error,
+        textStyle: const TextStyle(color: Colors.white),
+      );
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -74,12 +107,22 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
                       color: AppColors.primary.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
-                    child: Image.asset('assets/icons/icon.png', width: 80, height: 80),
+                    child: Image.asset(
+                      'assets/icons/icon.png',
+                      width: 80,
+                      height: 80,
+                    ),
                   ),
                   const SizedBox(height: 24),
-                  Text('Welcome Back!', style: Theme.of(context).textTheme.headlineMedium),
+                  Text(
+                    'Welcome Back!',
+                    style: Theme.of(context).textTheme.headlineMedium,
+                  ),
                   const SizedBox(height: 8),
-                  Text('Continue your learning journey', style: Theme.of(context).textTheme.bodyMedium),
+                  Text(
+                    'Continue your learning journey',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
                   const SizedBox(height: 40),
                   TextField(
                     controller: _emailController,
@@ -99,31 +142,45 @@ class _LoginState extends State<Login> with SingleTickerProviderStateMixin {
                       hintText: 'Enter your password',
                       prefixIcon: const Icon(Icons.lock_outline),
                       suffixIcon: IconButton(
-                        icon: Icon(_ishidden ? Icons.visibility_off_outlined : Icons.visibility_outlined),
+                        icon: Icon(
+                          _ishidden
+                              ? Icons.visibility_off_outlined
+                              : Icons.visibility_outlined,
+                        ),
                         onPressed: () => setState(() => _ishidden = !_ishidden),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      onPressed: () {},
-                      child: const Text('Forgot Password?'),
-                    ),
-                  ),
+                  // const SizedBox(height: 8),
+                  // Align(
+                  //   alignment: Alignment.centerRight,
+                  //   child: TextButton(
+                  //     onPressed: () {},
+                  //     child: const Text('Forgot Password?'),
+                  //   ),
+                  // ),
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: _isLoading ? null : _login,
                     child: _isLoading
-                        ? const SizedBox(height: 22, width: 22, child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white))
+                        ? const SizedBox(
+                            height: 22,
+                            width: 22,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.5,
+                              color: Colors.white,
+                            ),
+                          )
                         : const Text('Login'),
                   ),
                   const SizedBox(height: 32),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text("Don't have an account? ", style: Theme.of(context).textTheme.bodyMedium),
+                      Text(
+                        "Don't have an account? ",
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
                       TextButton(
                         onPressed: () => context.push('/signup'),
                         child: const Text('Sign Up'),

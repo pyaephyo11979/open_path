@@ -5,6 +5,7 @@ import 'package:open_path/core/configs/routes/app_route.dart';
 class APIService {
   final Dio dio = Dio();
   final String baseUrl = 'https://mxs008p0-3001.asse.devtunnels.ms/api';
+
   Map<String, dynamic> defaultHeader = {
     "Content-Type": "application/json",
     "Accept": "application/json",
@@ -21,10 +22,12 @@ class APIService {
     if (isTokenNeed == true) {
       await getToken();
     }
+
     final Response fetchedData = await dio.get(
       "$baseUrl$url",
       options: Options(headers: defaultHeader),
     );
+
     if (fetchedData.statusCode == 401) {
       bool success = await getRefreshToken(
         url: '/auth/refresh',

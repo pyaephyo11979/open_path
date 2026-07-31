@@ -81,6 +81,7 @@ class _CoursePageState extends State<CoursePage>
             padding: AppTheme.screenPadding,
             child: TextField(
               controller: _searchController,
+              onSubmitted: (value) => _searchCourses(),
               decoration: InputDecoration(
                 hintText: 'Search courses...',
                 suffixIcon: IconButton(
