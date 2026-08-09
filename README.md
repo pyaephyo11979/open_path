@@ -27,15 +27,15 @@ A mobile learning management system (LMS) built with **Flutter**. Open Path lets
 
 ## Current Features
 
-- 🔐 **Auth** — register, login, logout with JWT stored in `flutter_secure_storage`
-- 📚 **Course catalog** — browse all courses, trending courses, and search
-- ✅ **Enrollment** — enroll in a course with an `APPROVED`/`PENDING` status workflow
-- ▶️ **Video lessons** — YouTube-powered playback with lesson content and completion tracking
-- 🧠 **Quizzes** — radio-list questions, score review, and attempt history
-- 📊 **Progress** — profile stats (enrolled vs. actively learning) and "Currently Learning" rail
-- 🔔 **Notifications** — Firebase Cloud Messaging + local notifications, in-app history
-- 🌗 **Theming** — full light/dark mode with system theme detection
-- 🍞 **UX polish** — skeleton loading, slide/fade route transitions, floating bottom bar
+- **Auth** — register, login, logout with JWT stored in `flutter_secure_storage`
+- **Course catalog** — browse all courses, trending courses, and search
+- **Enrollment** — enroll in a course with an `APPROVED`/`PENDING` status workflow
+- **Video lessons** — YouTube-powered playback with lesson content and completion tracking
+- **Quizzes** — radio-list questions, score review, and attempt history
+- **Progress** — profile stats (enrolled vs. actively learning) and "Currently Learning" rail
+- **Notifications** — Firebase Cloud Messaging + local notifications, in-app history
+- **Theming** — full light/dark mode with system theme detection
+- **UX polish** — skeleton loading, slide/fade route transitions, floating bottom bar
 
 ---
 
